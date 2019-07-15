@@ -7,11 +7,14 @@
 import group_theory.subgroup
 import algebra.group.hom
 
---#print notation '' 
- 
+
+ --#print notation ↥ 
+ --coe_sort #0
+ --#print notation ↑
+ --coe
 
 example (G1 G2 : Type*) [group G1] [group G2]
-  (f : G1 → G2) [is_group_hom f] (H1 : set G1) [is_subgroup H1] :
+  (f : G1 → G2) [is_group_hom f] (H1 : set G1) [is_subgroup H1] (a b : H1) :
   is_subgroup (f '' H1) :=
 { one_mem := 
 begin
@@ -24,21 +27,38 @@ split,
 end,
   mul_mem := 
   begin
-  intro j,
-  intro k,
-  intro n,
-  intro m,
-  --this is true because f is a group homomorphism
-  --I need to get the preimage of j and k, then this is true by is_group_hom.map_mul
-   sorry 
+ -- intro j,
+ -- intro k,
+ -- intro n,
+ -- change j ∈ f '' H1 at n,
+ -- intro m,
+ -- change k ∈ f '' H1 at m,
+ -- show j*k ∈ f '' H1,
+ -- cases n with j' hj',
+ -- cases m with k' hk',
+  
+  rintro j k ⟨j', hj', rfl⟩ ⟨k', hk', rfl⟩,
+  show (f j') * (f k') ∈ f '' H1,
+  rw [← is_group_hom.map_mul f j' k'],
+ 
+-- need to get rid of the fs
+  --apply is_submonoid.mul_mem,
   end,
   
   inv_mem := 
   begin
-  intro j,
-  intro k,
-  --I need the preimage of j, this is then true by is_group_hom.map_inv
-  
-  sorry
+  --intro j,
+  --intro n,
+  --change j ∈ f '' H1 at n,
+  --show j⁻¹ ∈ f '' H1,
+ 
+
+ rintro j ⟨j', hj', rfl⟩,
+ show (f j')⁻¹ ∈ f '' H1,
+ rw [← is_group_hom.map_inv f j'],
+ 
+-- need to get rid of the fs
+ --rw [is_subgroup.inv_mem_iff H1],
   end
    }
+
