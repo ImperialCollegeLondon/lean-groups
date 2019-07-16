@@ -57,6 +57,8 @@ variable (f : G →g H)
 
 @[simp] lemma map_inv (x : G) : f (x⁻¹) = (f x)⁻¹ := sorry
 
+example (g : G) : g * g = g → g = 1 := by library_search
+
 --example (f : G →g H) (g₁ g₂ g₃ : G) : f (g₁ * g₂⁻¹ * 1) = f (g₁) * (f (g₂))⁻¹ := by simp
 
 definition map (G1 G2 : Type*) [group G1] [group G2]
