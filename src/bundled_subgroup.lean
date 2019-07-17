@@ -53,11 +53,13 @@ variable (f : G →g H)
 
 @[simp] lemma map_mul (x y : G) : f (x * y) = f x * f y := f.mul x y
 
-@[simp] lemma map_one : f 1 = 1 := sorry
+@[simp] lemma map_one : f 1 = 1 := 
+mul_self_iff_eq_one.1 $ by rw [← map_mul f, one_mul]
+--I'm not really sure how this "by" notation works
 
-@[simp] lemma map_inv (x : G) : f (x⁻¹) = (f x)⁻¹ := sorry
+@[simp] lemma map_inv (x : G) : f (x⁻¹) = (f x)⁻¹ := 
+eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 
---example (f : G →g H) (g₁ g₂ g₃ : G) : f (g₁ * g₂⁻¹ * 1) = f (g₁) * (f (g₂))⁻¹ := by simp
 
 definition map (G1 G2 : Type*) [group G1] [group G2]
   (f : G1 →g G2) (H1 : subgroup G1) : subgroup G2 :=
@@ -71,11 +73,35 @@ definition map (G1 G2 : Type*) [group G1] [group G2]
       exact H1.one_mem,
     },
     { 
-      sorry
+      exact group_hom.map_one f,
     }
   end,
-  mul_mem := sorry,
-  inv_mem := sorry
+  mul_mem := begin 
+   show ∀ {a b : G2}, a ∈ (⇑f '' H1.S) → b ∈ (⇑f '' H1.S) → (a*b) ∈ (⇑f '' H1.S),
+   rintro j k ⟨j', hj', rfl⟩ ⟨k', hk', rfl⟩,
+   rw [← group_hom.map_mul f j' k'],
+   unfold set.image,
+   dsimp,
+   use j'*k',
+   split,
+    apply submonoid.mul_mem,
+       assumption,
+    assumption,
+   refl,
+  end,
+  inv_mem := begin
+  rintro j ⟨j', hj', rfl⟩,
+  show (f j')⁻¹ ∈ f '' H1.S,
+  rw [← group_hom.map_inv f j'],
+  unfold set.image,
+  dsimp,
+  use j'⁻¹,
+  split,
+    apply subgroup.inv_mem,
+    assumption,
+  refl,
+  end
 }
 
 end group_hom 
+
