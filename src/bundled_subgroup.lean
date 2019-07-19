@@ -56,9 +56,13 @@ variable (f : G →g H)
 @[simp] lemma map_one : f 1 = 1 := 
 mul_self_iff_eq_one.1 $ by rw [← map_mul f, one_mul]
 --I'm not really sure how this "by" notation works
+--I'm using it because I want to be able to, change the goal? and
+--I'm not sure how else I could, but I don't know how to use it again.
 
 @[simp] lemma map_inv (x : G) : f (x⁻¹) = (f x)⁻¹ := 
 eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
+
+--example (g : G) : g * g = g → g = 1 := by library_search
 
 
 definition map (G1 G2 : Type*) [group G1] [group G2]
