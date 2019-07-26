@@ -1,3 +1,5 @@
+-- Sian's work on bundled subgroups
+
 import group_theory.subgroup
 import algebra.group.hom
 
@@ -54,7 +56,7 @@ variable (f : G →g H)
 @[simp] lemma map_mul (x y : G) : f (x * y) = f x * f y := f.mul x y
 
 @[simp] lemma map_one : f 1 = 1 := 
-mul_self_iff_eq_one.1 $ by rw [← map_mul f, one_mul]
+mul_self_iff_eq_one.1 $ begin rw [← map_mul f, one_mul] end
 --I'm not really sure how this "by" notation works
 --I'm using it because I want to be able to, change the goal? and
 --I'm not sure how else I could, but I don't know how to use it again.
