@@ -37,26 +37,26 @@ class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=
 
 import group_theory.quotient_group -- quotient groups
 
--- bundled subgroups
-structure subgroup (G : Type*) [group G] :=
-(carrier : set G)
-(one_mem : (1 : G) ∈ carrier)
-(mul_mem : ∀ {a b : G}, a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
-(inv_mem : ∀ {a : G}, a ∈ carrier → a⁻¹ ∈ carrier)
+import bundled_subgroup
 
 -- This gives us four functions subgroup.carrier, subgroup.one_mem,
 -- subgroup.mul_mem and subgroup.inv_mem. They each eat a term
 -- of type `subgroup <something>` and spit out the relevant set or proof.
 
 -- a variable G, plus proof it's a group.
-variables (G : Type*) [group G]
 
 -- Subsets of a type are already bundled: they're called `set G`.
 -- There's a map from `subgroup G` to `set G` which just sends
 -- a subgroup `H` to its carrier set `H.carrier`; this is
--- subgroup.carrier:
+-- subgroup.carrier. Let's make Lean apply it by default whenever
+-- it's expecting a set and we give it a subgroup.
 
-example : subgroup G → set G := subgroup.carrier
+
+namespace subgroup
+variables {G : Type*} [group G]
+
+-- Two subgroups with same underlying subset are the same subgroup. 
+@[extensionality] def ext (H K : subgroup G) (h : (H : set G) = K) : H = K := by cases H; cases K; cases h; refl 
 
 -- Do you know what a partial order is? You can look it up on Wikipedia.
 -- It's not hard to check that the set of subsets of a set is a partial order.
@@ -77,28 +77,22 @@ example : partial_order (set G) := by apply_instance
 -- Can you put a partial order on `subgroup G` by pulling it back from the one on `set G`?
 -- Or can you do it directly? You'll have to prove the axioms for a partial order.
 
+theorem carrier_injective : function.injective (subgroup.carrier : subgroup G → set G) := by ext
 
 instance : partial_order (subgroup G) := 
-{ le := λ H K, H.carrier ⊆ K.carrier, 
+{ le := λ H K, (H : set G) ⊆ K, 
   le_refl := begin
   intro,
   simp,
   end,
-  le_trans := begin
-  intros a b c hab hbc,
-  sorry
-  end,
-  le_antisymm := begin
-  intros,
-  sorry
-  end
+  le_trans := λ _ _ _, set.subset.trans,
+  le_antisymm := λ H K h1 h2, ext H K $ set.subset.antisymm h1 h2
   }
-
-
 
 -- If you do it directly you'll have to define the inequality you want, which will look something like this:
 -- λ H K, H.carrier ⊆ K.carrier ; and then you'll have to prove all the theorems. If you pull it back you
 -- won't need to prove the theorems.
+
 
 -- Lean has quotients by normal subgroups.
 
@@ -123,6 +117,7 @@ example := {H : subgroup G // N ≤ H.carrier}
 -- Those two sets biject with each other in the stong way which I showed you today: you can construct maps
 -- in both directions. Do you know how do to this in maths?
 
+end subgroup
 
 -- bundled monoid homs
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
@@ -136,10 +131,7 @@ infixr ` →* `:25 := monoid_hom
 instance {M : Type*} {N : Type*} [monoid M] [monoid N] :
   has_coe_to_fun (M →* N) := ⟨_, monoid_hom.to_fun⟩
 
--- and also pretend subgroups are subsets
-instance {G : Type*} [group G] : has_coe (subgroup G) (set G) := ⟨subgroup.carrier⟩
-
-variables (H : Type*) [group H]
+variables (G : Type*) [group G] (H : Type*) [group H]
 
 def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
 { carrier := f '' K,
@@ -171,6 +163,7 @@ def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
     apply subgroup.inv_mem,
     assumption,
   --monoids don't have inverses, am I allowed to use group_hom.inv? It won't let me at the moment but I think that's an import issue
+  
   sorry
   end
 }

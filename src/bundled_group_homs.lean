@@ -41,6 +41,9 @@ attribute [to_additive add_monoid_hom.to_fun] monoid_hom.to_fun
 namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [monoid M] [monoid N] [monoid P]
 
+@[extensionality] def ext (f g : M →* N) (h : (f : M → N) = g) : f = g :=
+by cases f; cases g; cases h; refl
+
 /-- if f is a monoid homomorphism then f 1 = 1-/
 @[simp] lemma map_one (f : M →* N) : f 1 = 1 := f.map_one'
 
@@ -96,6 +99,13 @@ end group_hom
 
 namespace add_monoid_hom
 variables {A : Type*} {B : Type*} {C : Type*} [add_monoid A] [add_monoid B] [add_monoid C]
+
+/-- two additive monoid homomorphisms with equal underlying maps are equal-/
+@[extensionality] def ext (f g : A →+ B) (h : (f : A → B) = g) : f = g :=
+by cases f; cases g; cases h; refl
+
+attribute [to_additive add_monoid_hom.ext] monoid_hom.ext
+attribute [to_additive add_monoid_hom.ext.equations._eqn_1] monoid_hom.ext.equations._eqn_1
 
 /-- if f is a additive monoid homomorphism then f 0 = 0-/
 @[simp] def map_zero (f : A →+ B) : f 0 = 0 := f.map_zero'
