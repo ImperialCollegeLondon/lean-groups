@@ -77,7 +77,7 @@ example : partial_order (set G) := by apply_instance
 -- Can you put a partial order on `subgroup G` by pulling it back from the one on `set G`?
 -- Or can you do it directly? You'll have to prove the axioms for a partial order.
 
-theorem carrier_injective : function.injective (subgroup.carrier : subgroup G → set G) := by ext
+theorem carrier_injective : function.injective (submonoid.carrier : subgroup G → set G) := by ext
 
 instance : partial_order (subgroup G) := 
 { le := λ H K, (H : set G) ⊆ K, 
