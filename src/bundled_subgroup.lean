@@ -91,9 +91,29 @@ definition map (f : G →* H) (G1 : subgroup G) : subgroup H :=
 
 definition comap (f : G →* H) (H1 : subgroup H) : subgroup G :=
 { carrier := f ⁻¹' (H1 : set H),
-  one_mem := begin sorry end,
-  mul_mem := begin sorry end,
-  inv_mem := begin sorry end
+  one_mem := begin 
+  unfold set.preimage,
+  dsimp,
+  rw monoid_hom.map_one f,
+  apply subgroup.one_mem,
+  end,
+  mul_mem := begin 
+   intros,
+  unfold set.preimage,
+  dsimp,
+  rw monoid_hom.map_mul f,
+  apply subgroup.mul_mem,
+    assumption,
+  assumption, 
+  end,
+  inv_mem := begin 
+  intros,
+  unfold set.preimage,
+  dsimp,
+  rw group_hom.map_inv,
+  apply subgroup.inv_mem,
+  assumption,
+  end
 }
 
 end subgroup

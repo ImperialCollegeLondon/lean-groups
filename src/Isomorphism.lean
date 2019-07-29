@@ -13,6 +13,7 @@
 import algebra.group.basic -- stuff like mul_self_iff_eq_one, mul_inv_eq_iff_eq_mul etc
 import algebra.group.hom -- unbundled group homs
 import data.equiv.basic
+import bundled_group_homs
 
 /- e.g.
 
@@ -120,16 +121,16 @@ example := {H : subgroup G // N ≤ H.carrier}
 end subgroup
 
 -- bundled monoid homs
-structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
-(to_fun : M → N)
-(map_one : to_fun 1 = 1)
-(map_mul : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
+--structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
+--(to_fun : M → N)
+--(map_one : to_fun 1 = 1)
+--(map_mul : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
 
 infixr ` →* `:25 := monoid_hom
 
 -- pretend group homs are functions
-instance {M : Type*} {N : Type*} [monoid M] [monoid N] :
-  has_coe_to_fun (M →* N) := ⟨_, monoid_hom.to_fun⟩
+--instance {M : Type*} {N : Type*} [monoid M] [monoid N] :
+--  has_coe_to_fun (M →* N) := ⟨_, monoid_hom.to_fun⟩
 
 variables (G : Type*) [group G] (H : Type*) [group H]
 
@@ -143,7 +144,6 @@ def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
   end,
   mul_mem := begin
   rintro j k ⟨j', hj', rfl⟩ ⟨k', hk', rfl⟩,
-  show f.to_fun j' * f.to_fun k' ∈ ⇑f '' ↑K,
   rw [← monoid_hom.map_mul f j' k'],
   unfold set.image,
   dsimp,
@@ -162,9 +162,7 @@ def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
   split,
     apply subgroup.inv_mem,
     assumption,
-  --monoids don't have inverses, am I allowed to use group_hom.inv? It won't let me at the moment but I think that's an import issue
-  
-  sorry
+  apply group_hom.map_inv,
   end
 }
 
@@ -173,7 +171,6 @@ def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
   one_mem := begin
   unfold set.preimage,
   dsimp,
-  show f.to_fun 1 ∈ ↑K,
   rw monoid_hom.map_one f,
   apply subgroup.one_mem,
   end,
@@ -181,7 +178,6 @@ def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
   intros,
   unfold set.preimage,
   dsimp,
-  show f.to_fun (a * b) ∈ ↑K,
   rw monoid_hom.map_mul f,
   apply subgroup.mul_mem,
     assumption,
@@ -191,8 +187,9 @@ def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
   intros,
   unfold set.preimage,
   dsimp,
-  --same issue as above with monoids not having inverses
-  sorry
+  rw group_hom.map_inv,
+  apply subgroup.inv_mem,
+  assumption,
   end
 }
 
