@@ -203,3 +203,13 @@ def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
   end
 }
 
+
+example : {H : subgroup G // N ≤ H.carrier} ≃ (subgroup (quotient_group.quotient N)) :=
+{ to_fun := group_hom.map,
+  inv_fun := group_hom.comap,
+  left_inv := begin
+  
+  end,
+  right_inv := sorry
+}
+
