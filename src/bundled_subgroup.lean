@@ -54,6 +54,11 @@ variables {G : Type*} [group G] {H : Type*} [group H]
 
 namespace subgroup
 
+instance (K : subgroup G) : is_subgroup K.carrier :=
+{ one_mem := K.one_mem,
+  mul_mem := K.mul_mem,
+  inv_mem := K.inv_mem }
+
 instance has_coe : has_coe (subgroup G) (set G) := ⟨subgroup.carrier⟩
 
 definition map (f : G →* H) (G1 : subgroup G) : subgroup H :=

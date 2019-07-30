@@ -14,6 +14,7 @@ import algebra.group.basic -- stuff like mul_self_iff_eq_one, mul_inv_eq_iff_eq_
 import algebra.group.hom -- unbundled group homs
 import data.equiv.basic
 import bundled_group_homs
+import group_theory.quotient_group
 
 /- e.g.
 
@@ -78,7 +79,7 @@ example : partial_order (set G) := by apply_instance
 -- Can you put a partial order on `subgroup G` by pulling it back from the one on `set G`?
 -- Or can you do it directly? You'll have to prove the axioms for a partial order.
 
-theorem carrier_injective : function.injective (submonoid.carrier : subgroup G → set G) := by ext
+theorem carrier_injective : function.injective (subgroup.carrier : subgroup G → set G) := by ext
 
 instance : partial_order (subgroup G) := 
 { le := λ H K, (H : set G) ⊆ K, 
@@ -132,7 +133,7 @@ infixr ` →* `:25 := monoid_hom
 --instance {M : Type*} {N : Type*} [monoid M] [monoid N] :
 --  has_coe_to_fun (M →* N) := ⟨_, monoid_hom.to_fun⟩
 
-variables (G : Type*) [group G] (H : Type*) [group H]
+variables {G : Type*} [group G] {H : Type*} [group H] 
 
 def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
 { carrier := f '' K,
@@ -193,13 +194,17 @@ def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
   end
 }
 
+variables (N : subgroup G) [normal_subgroup N.carrier]
 
-example : {H : subgroup G // N ≤ H.carrier} ≃ (subgroup (quotient_group.quotient N)) :=
-{ to_fun := group_hom.map,
-  inv_fun := group_hom.comap,
-  left_inv := begin
-  
-  end,
+open quotient_group 
+
+example : {H : subgroup G // N ≤ H} ≃ (subgroup (quotient N.carrier)) :=
+{ to_fun := λ HN, group_hom.map (group_hom.mk'' (mk : G → quotient N.carrier))
+    HN.1,
+  inv_fun := λ Q, ⟨group_hom.comap (group_hom.mk'' (mk : G → quotient N.carrier)) Q, begin
+    show N.carrier ⊆ _,
+    sorry, 
+  end⟩,
+  left_inv := sorry,
   right_inv := sorry
 }
-

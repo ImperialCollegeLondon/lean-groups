@@ -1,4 +1,4 @@
-import algebra.group.to_additive algebra.group.basic
+import algebra.group.to_additive algebra.group.basic algebra.group.hom
 
 /-- bundled monoid homomorphisms; use this for bundled group homomorphisms too -/
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
@@ -95,6 +95,10 @@ eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
 def inv {G H} [group G] [comm_group H] (f : G →* H) : G →* H :=
 mk' (λ g, (f g)⁻¹) $ λ a b, by rw [←mul_inv, f.map_mul]
 
+def mk'' {G H} [group G] [group H] (f : G → H) [is_group_hom f] : G →* H :=
+{ to_fun := f,
+  map_one' := is_group_hom.map_one f,
+  map_mul' := is_group_hom.map_mul f }
 end group_hom
 
 namespace add_monoid_hom
