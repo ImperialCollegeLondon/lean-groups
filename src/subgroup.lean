@@ -39,7 +39,7 @@ end,
   
   rintro j k ⟨j', hj', rfl⟩ ⟨k', hk', rfl⟩,
   show (f j') * (f k') ∈ f '' H1,
-  rw [← is_group_hom.map_mul f j' k'],
+  rw [← is_mul_hom.map_mul f j' k'],
  unfold set.image,
  dsimp,
  use j'*k',

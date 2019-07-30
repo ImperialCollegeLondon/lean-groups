@@ -95,22 +95,51 @@ instance : partial_order (subgroup G) :=
 -- λ H K, H.carrier ⊆ K.carrier ; and then you'll have to prove all the theorems. If you pull it back you
 -- won't need to prove the theorems.
 
+open lattice
+
+-- so let's work up to lattices. "inf H K" is just H intersect K -- but we need to check it's a subgroup. 
+
+protected def inf (H K : subgroup G) : subgroup G :=
+{ carrier := H.carrier ∩ K.carrier,
+  one_mem := sorry,
+  mul_mem := sorry,
+  inv_mem := sorry }
+
+-- notation for inf is ⊓ (\glb) and as you can see from the definition of "carrier" above (the carrier
+-- is the underlying set), it's just the intersection. `inf` stands for "infimum" and "glb" for "greatest lower bound",
+-- both rather pretentious names for the intersection.
+
+instance : has_inf (subgroup G) := ⟨subgroup.inf⟩
+
+-- half way to a lattice is a semilattice_inf: there are some axioms you need to check though.
+
+instance : semilattice_inf (subgroup G) :=
+{ inf := (⊓),
+  inf_le_left := sorry,
+  inf_le_right := sorry,
+  le_inf := sorry,
+  ..subgroup.partial_order}
 
 -- Lean has quotients by normal subgroups.
 
-example (G : Type*) [group G] (N : set G) [normal_subgroup N] := quotient_group.quotient N -- This is G/N. Lean guesses G
+example (G : Type*) [group G] (N : set G) [normal_subgroup N] := quotient_group.quotient N 
+-- This is G/N. Lean guesses G from N.
 
--- Lean can guess G because N is a subset of G.
-
--- I want to make a term of type `equiv X Y` where X and Y are two collections of subgroups and the `equiv` is this
--- strong kind of bijection I'm talking about -- a map from X to Y, and a map from Y to X, and two proofs,
+-- We want to make a term of type `equiv X Y` where X and Y are two collections of subgroups and the `equiv` is this
+-- strong kind of bijection -- a map from X to Y, and a map from Y to X, and two proofs,
 -- namely that the composite maps X->Y->X and Y->X->Y are the relevant identity maps.
 
--- To do this we need to make the two sets. Here's the first:
+-- To do this we need to make the two sets. First the variables we're going to have:
 
 variables (N : set G) [normal_subgroup N]
 
-example := subgroup (quotient_group.quotient N)
+-- Now notation for the quotient: 
+
+local notation `Q` := quotient_group.quotient N
+
+-- Now the first set (or "type", as Nicola Gambino would say). 
+
+example := subgroup Q 
 
 -- That's the subgroups of G/N. The other set is the subgroups of G which contain N.
 
@@ -121,21 +150,11 @@ example := {H : subgroup G // N ≤ H.carrier}
 
 end subgroup
 
--- bundled monoid homs
---structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] :=
---(to_fun : M → N)
---(map_one : to_fun 1 = 1)
---(map_mul : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
-
-infixr ` →* `:25 := monoid_hom
-
--- pretend group homs are functions
---instance {M : Type*} {N : Type*} [monoid M] [monoid N] :
---  has_coe_to_fun (M →* N) := ⟨_, monoid_hom.to_fun⟩
-
 variables {G : Type*} [group G] {H : Type*} [group H] 
 
-def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
+namespace monoid_hom
+
+def map (f : G →* H) (K : subgroup G) : subgroup H :=
 { carrier := f '' K,
   one_mem := begin 
   use 1,
@@ -163,11 +182,11 @@ def group_hom.map (f : G →* H) (K : subgroup G) : subgroup H :=
   split,
     apply subgroup.inv_mem,
     assumption,
-  apply group_hom.map_inv,
+  apply f.map_inv,
   end
 }
 
-def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
+def comap (f : G →* H) (K : subgroup H) : subgroup G :=
 { carrier := f ⁻¹' K,
   one_mem := begin
   unfold set.preimage,
@@ -188,23 +207,64 @@ def group_hom.comap (f : G →* H) (K : subgroup H) : subgroup G :=
   intros,
   unfold set.preimage,
   dsimp,
-  rw group_hom.map_inv,
+  rw f.map_inv,
   apply subgroup.inv_mem,
   assumption,
   end
 }
 
-variables (N : subgroup G) [normal_subgroup N.carrier]
+-- We haven't make the kernel of a bundled hom into a bundled subgroup!
+def ker (f : G →* H) : subgroup G :=
+{ carrier := {g : G | f g = 1},
+  one_mem := sorry,
+  mul_mem := sorry,
+  inv_mem := sorry }
 
-open quotient_group 
+-- one lemma you'll need to prove that your map in the correspondence below is well-defined. 
+lemma ker_sub_comap (f : G →* H) (X : subgroup H): f.ker ≤ f.comap X := sorry
 
-example : {H : subgroup G // N ≤ H} ≃ (subgroup (quotient N.carrier)) :=
-{ to_fun := λ HN, group_hom.map (group_hom.mk'' (mk : G → quotient N.carrier))
-    HN.1,
-  inv_fun := λ Q, ⟨group_hom.comap (group_hom.mk'' (mk : G → quotient N.carrier)) Q, begin
-    show N.carrier ⊆ _,
-    sorry, 
+end monoid_hom
+
+-- OK here is the main theorem. First variables.
+
+variables {N : subgroup G} [normal_subgroup (N : set G)]
+
+-- notation Q for the quotient group G/N
+
+local notation `Q` := quotient_group.quotient (N : set G)
+
+-- definition pr for the bundled map G →* Q
+
+def pr : G →* Q := group_hom.mk (quotient_group.mk : G → Q)
+
+-- the kernel of the projection is N
+
+lemma ker_pr : (pr : G →* Q).ker = N :=
+begin
+  apply subgroup.ext,
+  convert ←quotient_group.ker_mk (↑N : set G),
+  ext x,
+  exact is_subgroup.mem_trivial,
+end
+
+open quotient_group monoid_hom
+
+-- hey this Wikipedia page is great:
+-- https://en.wikipedia.org/wiki/Correspondence_theorem_(group_theory)
+
+/-- Correspondence theorem for group theory -- first version -/
+def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
+{ to_fun := λ HN, pr.map HN.1,
+  inv_fun := λ K, ⟨pr.comap K, begin 
+    sorry
   end⟩,
   left_inv := sorry,
   right_inv := sorry
 }
+
+-- That theorem above (I know it says definition, that's because the functions are data) is a first
+-- version of the correspondence theorem. It says that there's a bijection of sets:
+-- subgroups of G containing N <-> subgroups of Q=G/N
+
+-- The next thing to do is to check that the correspondence respects ⊓, but I haven't quite decided
+-- the best way to formalise that...

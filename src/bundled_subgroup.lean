@@ -85,7 +85,7 @@ definition map (f : G →* H) (G1 : subgroup G) : subgroup H :=
   end,
   inv_mem := begin
     rintro j ⟨j', hj', rfl⟩,
-    rw [← group_hom.map_inv f j'],
+    rw [←f.map_inv j'],
     use j'⁻¹,
     split,
       apply subgroup.inv_mem,
@@ -115,7 +115,7 @@ definition comap (f : G →* H) (H1 : subgroup H) : subgroup G :=
   intros,
   unfold set.preimage,
   dsimp,
-  rw group_hom.map_inv,
+  rw f.map_inv,
   apply subgroup.inv_mem,
   assumption,
   end
