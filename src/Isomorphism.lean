@@ -101,9 +101,39 @@ open lattice
 
 protected def inf (H K : subgroup G) : subgroup G :=
 { carrier := H.carrier ∩ K.carrier,
-  one_mem := sorry,
-  mul_mem := sorry,
-  inv_mem := sorry }
+  one_mem := begin
+--  unfold has_inter.inter,
+--  unfold set.inter,
+  split,
+    apply subgroup.one_mem,
+  apply subgroup.one_mem,
+  end,
+  mul_mem := begin
+  intros,
+  split,
+    apply subgroup.mul_mem,
+      unfold has_inter.inter at a_1,
+      unfold set.inter at a_1,
+      cases a_1 with Hh Hk,
+      assumption,
+    cases a_2 with Hh Hk,
+    assumption,
+  apply subgroup.mul_mem,
+    cases a_1 with Hh Hk,
+    assumption,
+  cases a_2 with Hh Hk,
+  assumption,
+  end,
+  inv_mem := begin
+  intros,
+  cases a_1 with Hh Hk,
+  split,
+    apply subgroup.inv_mem,
+    assumption,
+  apply subgroup.inv_mem,
+  assumption,
+  end
+  }
 
 -- notation for inf is ⊓ (\glb) and as you can see from the definition of "carrier" above (the carrier
 -- is the underlying set), it's just the intersection. `inf` stands for "infimum" and "glb" for "greatest lower bound",
@@ -115,7 +145,13 @@ instance : has_inf (subgroup G) := ⟨subgroup.inf⟩
 
 instance : semilattice_inf (subgroup G) :=
 { inf := (⊓),
-  inf_le_left := sorry,
+  inf_le_left := begin
+  intros,
+  unfold lattice.has_inf.inf,
+  unfold subgroup.inf,
+  --I don't really understand what I'm trying to prove
+  sorry
+  end,
   inf_le_right := sorry,
   le_inf := sorry,
   ..subgroup.partial_order}
@@ -216,12 +252,27 @@ def comap (f : G →* H) (K : subgroup H) : subgroup G :=
 -- We haven't make the kernel of a bundled hom into a bundled subgroup!
 def ker (f : G →* H) : subgroup G :=
 { carrier := {g : G | f g = 1},
-  one_mem := sorry,
-  mul_mem := sorry,
-  inv_mem := sorry }
+  one_mem := begin
+  dsimp,
+  apply monoid_hom.map_one,
+  end,
+  mul_mem := begin
+  dsimp,
+  intros,
+  rw [monoid_hom.map_mul, a_1, a_2],
+  simp,
+  end,
+  inv_mem := begin
+  dsimp,
+  intros,
+  rw [f.map_inv, a_1],
+  simp,
+  end }
 
 -- one lemma you'll need to prove that your map in the correspondence below is well-defined. 
-lemma ker_sub_comap (f : G →* H) (X : subgroup H): f.ker ≤ f.comap X := sorry
+lemma ker_sub_comap (f : G →* H) (X : subgroup H): f.ker ≤ f.comap X := begin  
+sorry
+end
 
 end monoid_hom
 
@@ -256,7 +307,7 @@ open quotient_group monoid_hom
 def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
 { to_fun := λ HN, pr.map HN.1,
   inv_fun := λ K, ⟨pr.comap K, begin 
-    sorry
+  -- same issue as semilattice_inf where I don't know how to prove the multiple things in curly brackets on one side of an equation
   end⟩,
   left_inv := sorry,
   right_inv := sorry
