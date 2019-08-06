@@ -52,6 +52,8 @@ structure subgroup (G : Type*) [group G] extends submonoid G :=
 
 variables {G : Type*} [group G] {H : Type*} [group H]
 
+instance : has_mem G (subgroup G) := ⟨λ g H, g ∈ H.carrier⟩
+
 namespace subgroup
 
 instance (K : subgroup G) : is_subgroup K.carrier :=
@@ -122,3 +124,22 @@ definition comap (f : G →* H) (H1 : subgroup H) : subgroup G :=
 }
 
 end subgroup
+
+structure normal_subgroup' (G : Type*) [group G] extends subgroup G :=
+(h : normal_subgroup carrier)
+
+instance normal_subgroup'_is_subgroup
+  (G : Type*) [group G] (N : normal_subgroup' G) : is_subgroup N.carrier :=
+{ one_mem := N.one_mem,
+  mul_mem := N.mul_mem,
+  inv_mem := N.inv_mem }
+
+  instance normal_subgroup'_is_normal_subgroup
+    (G : Type*) [group G] (N : normal_subgroup' G) : normal_subgroup N.carrier := N.h
+
+  instance normal_subgroup'_is_normal_subgroup'
+    (G : Type*) [group G] (N : normal_subgroup' G) : normal_subgroup (N.to_subgroup : set G) := N.h
+
+
+instance foo (G : Type*) [group G] : has_coe (normal_subgroup' G) (subgroup G) :=
+⟨normal_subgroup'.to_subgroup⟩

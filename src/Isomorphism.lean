@@ -15,6 +15,7 @@ import algebra.group.hom -- unbundled group homs
 import data.equiv.basic
 import bundled_group_homs
 import group_theory.quotient_group
+import data.set.basic 
 
 /- e.g.
 
@@ -53,6 +54,7 @@ import bundled_subgroup
 -- subgroup.carrier. Let's make Lean apply it by default whenever
 -- it's expecting a set and we give it a subgroup.
 
+import bundled_quotients
 
 namespace subgroup
 variables {G : Type*} [group G]
@@ -98,6 +100,8 @@ instance : partial_order (subgroup G) :=
 open lattice
 
 -- so let's work up to lattices. "inf H K" is just H intersect K -- but we need to check it's a subgroup. 
+
+example (X : Type) (A B : set X) : A ∩ B ⊆ A := set.inter_subset_left A B
 
 protected def inf (H K : subgroup G) : subgroup G :=
 { carrier := H.carrier ∩ K.carrier,
@@ -147,10 +151,13 @@ instance : semilattice_inf (subgroup G) :=
 { inf := (⊓),
   inf_le_left := begin
   intros,
-  unfold lattice.has_inf.inf,
-  unfold subgroup.inf,
-  --I don't really understand what I'm trying to prove
-  sorry
+  show a.carrier ∩ b.carrier ⊆ a.carrier,
+  simp,
+  --exact set.inter_subset_left _ _,
+  --unfold lattice.has_inf.inf,
+  --unfold subgroup.inf,
+  
+  
   end,
   inf_le_right := sorry,
   le_inf := sorry,
@@ -269,33 +276,49 @@ def ker (f : G →* H) : subgroup G :=
   simp,
   end }
 
+def mem_ker (f : G →* H) (x : G) : x ∈ f.ker ↔ f x = 1 := iff.rfl
+
 -- one lemma you'll need to prove that your map in the correspondence below is well-defined. 
 lemma ker_sub_comap (f : G →* H) (X : subgroup H): f.ker ≤ f.comap X := begin  
-sorry
+  intro g,
+  intro h,
+  have h2 : f g = 1,
+    exact h,
+  show f g ∈ X,
+  rw h2,
+  exact X.one_mem,
+--  apply subgroup.one_mem,    
 end
 
 end monoid_hom
 
 -- OK here is the main theorem. First variables.
 
-variables {N : subgroup G} [normal_subgroup (N : set G)]
+variables {N : normal_subgroup' G}
 
 -- notation Q for the quotient group G/N
 
-local notation `Q` := quotient_group.quotient (N : set G)
-
--- definition pr for the bundled map G →* Q
-
-def pr : G →* Q := group_hom.mk (quotient_group.mk : G → Q)
+local notation `Q` := quotient_group.quotient' N
 
 -- the kernel of the projection is N
 
-lemma ker_pr : (pr : G →* Q).ker = N :=
+lemma ker_pr : (quotient_group.mk' N).ker = N :=
 begin
   apply subgroup.ext,
-  convert ←quotient_group.ker_mk (↑N : set G),
-  ext x,
-  exact is_subgroup.mem_trivial,
+  apply set.subset.antisymm,
+    intro x,
+    intro h,
+    show x ∈ N.carrier,
+    change quotient_group.mk' N x = 1 at h,
+    change quotient_group.mk x = 1 at h,
+    rw ←quotient_group.ker_mk N.carrier,
+    rwa is_group_hom.mem_ker,
+  intro x,
+  intro h,
+  change x ∈ N.carrier at h,
+  show quotient_group.mk x = 1,
+  rw ←quotient_group.ker_mk N.carrier at h,
+  rwa is_group_hom.mem_ker at h,
 end
 
 open quotient_group monoid_hom
@@ -304,12 +327,22 @@ open quotient_group monoid_hom
 -- https://en.wikipedia.org/wiki/Correspondence_theorem_(group_theory)
 
 /-- Correspondence theorem for group theory -- first version -/
-def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
-{ to_fun := λ HN, pr.map HN.1,
-  inv_fun := λ K, ⟨pr.comap K, begin 
-  -- same issue as semilattice_inf where I don't know how to prove the multiple things in curly brackets on one side of an equation
+def correspondence : {H : subgroup G // N.to_subgroup ≤ H} ≃ (subgroup Q) :=
+{ to_fun := λ HN, (quotient_group.mk' N).map HN.1,
+  inv_fun := λ K, ⟨(quotient_group.mk' N).comap K, begin 
+  intro g,
+  intro h,
+  change g ∈ (N : subgroup G) at h,
+  show (quotient_group.mk' N) g ∈ K,
+  rw ←ker_pr at h,
+  rw mem_ker at h,
+  rw h,
+  exact K.one_mem,
   end⟩,
-  left_inv := sorry,
+  left_inv := begin intro K, dsimp, cases K with K hK, apply subtype.ext.2, dsimp, ext,
+  
+  sorry
+  end,
   right_inv := sorry
 }
 
