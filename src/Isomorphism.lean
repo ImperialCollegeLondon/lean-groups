@@ -97,6 +97,9 @@ instance : partial_order (subgroup G) :=
 -- λ H K, H.carrier ⊆ K.carrier ; and then you'll have to prove all the theorems. If you pull it back you
 -- won't need to prove the theorems.
 
+theorem le {G : Type*} [group G] {H K : subgroup G} : H ≤ K ↔ ∀ x: G, x ∈ H → x ∈ K :=
+iff.rfl
+
 open lattice
 
 -- so let's work up to lattices. "inf H K" is just H intersect K -- but we need to check it's a subgroup. 
@@ -156,15 +159,28 @@ instance : semilattice_inf (subgroup G) :=
   --exact set.inter_subset_left _ _,
   --unfold lattice.has_inf.inf,
   --unfold subgroup.inf,
-  
-  
   end,
-  inf_le_right := sorry,
-  le_inf := sorry,
+  inf_le_right := begin
+  intros,
+  show a.carrier ∩ b.carrier ⊆ b.carrier,
+  simp,
+  end,
+  le_inf := begin
+  intros a b c,
+  intros hab hac,
+  change a.carrier ⊆ b.carrier at hab,
+  change a.carrier ⊆ c.carrier at hac,
+  show a.carrier ⊆ b.carrier ∩ c.carrier,
+  simp,
+  split,
+    assumption,
+  assumption,
+  end,
   ..subgroup.partial_order}
 
 -- Lean has quotients by normal subgroups.
 
+-- old style method
 example (G : Type*) [group G] (N : set G) [normal_subgroup N] := quotient_group.quotient N 
 -- This is G/N. Lean guesses G from N.
 
@@ -174,11 +190,11 @@ example (G : Type*) [group G] (N : set G) [normal_subgroup N] := quotient_group.
 
 -- To do this we need to make the two sets. First the variables we're going to have:
 
-variables (N : set G) [normal_subgroup N]
+variables {N : subgroup G} (h : is_normal_subgroup N)
 
 -- Now notation for the quotient: 
 
-local notation `Q` := quotient_group.quotient N
+local notation `Q` := quotient_group.quotient' h
 
 -- Now the first set (or "type", as Nicola Gambino would say). 
 
@@ -186,7 +202,7 @@ example := subgroup Q
 
 -- That's the subgroups of G/N. The other set is the subgroups of G which contain N.
 
-example := {H : subgroup G // N ≤ H.carrier}
+example := {H : subgroup G // N ≤ H}
 
 -- Those two sets biject with each other in the stong way which I showed you today: you can construct maps
 -- in both directions. Do you know how do to this in maths?
@@ -278,6 +294,26 @@ def ker (f : G →* H) : subgroup G :=
 
 def mem_ker (f : G →* H) (x : G) : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
+theorem ker_normal (f : G →* H) : is_normal_subgroup (ker f) :=
+begin
+   constructor,
+   -- see what you can do -- might not be logically necessary but it might also be good
+   -- practice :-) 
+   sorry
+end
+
+
+theorem ker_mk' {G : Type*} [group G] {N : subgroup G} (h : is_normal_subgroup N) :
+  ker (quotient_group.mk' h) = N :=
+begin
+  letI : normal_subgroup N.carrier := h,
+  apply subgroup.ext,
+  convert quotient_group.ker_mk N.carrier,
+  sorry -- I'll fix this later  
+end
+
+
+
 -- one lemma you'll need to prove that your map in the correspondence below is well-defined. 
 lemma ker_sub_comap (f : G →* H) (X : subgroup H): f.ker ≤ f.comap X := begin  
   intro g,
@@ -287,63 +323,58 @@ lemma ker_sub_comap (f : G →* H) (X : subgroup H): f.ker ≤ f.comap X := begi
   show f g ∈ X,
   rw h2,
   exact X.one_mem,
---  apply subgroup.one_mem,    
 end
 
 end monoid_hom
 
 -- OK here is the main theorem. First variables.
 
-variables {N : normal_subgroup' G}
+variables {N : subgroup G} (hN : is_normal_subgroup N)
 
 -- notation Q for the quotient group G/N
 
-local notation `Q` := quotient_group.quotient' N
+local notation `Q` := quotient_group.quotient' hN
 
 -- the kernel of the projection is N
 
-lemma ker_pr : (quotient_group.mk' N).ker = N :=
-begin
-  apply subgroup.ext,
-  apply set.subset.antisymm,
-    intro x,
-    intro h,
-    show x ∈ N.carrier,
-    change quotient_group.mk' N x = 1 at h,
-    change quotient_group.mk x = 1 at h,
-    rw ←quotient_group.ker_mk N.carrier,
-    rwa is_group_hom.mem_ker,
-  intro x,
-  intro h,
-  change x ∈ N.carrier at h,
-  show quotient_group.mk x = 1,
-  rw ←quotient_group.ker_mk N.carrier at h,
-  rwa is_group_hom.mem_ker at h,
-end
+open monoid_hom
 
-open quotient_group monoid_hom
+open quotient_group
 
 -- hey this Wikipedia page is great:
 -- https://en.wikipedia.org/wiki/Correspondence_theorem_(group_theory)
 
 /-- Correspondence theorem for group theory -- first version -/
-def correspondence : {H : subgroup G // N.to_subgroup ≤ H} ≃ (subgroup Q) :=
-{ to_fun := λ HN, (quotient_group.mk' N).map HN.1,
-  inv_fun := λ K, ⟨(quotient_group.mk' N).comap K, begin 
+
+def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
+{ to_fun := λ HN, (quotient_group.mk' hN).map HN.1,
+  inv_fun := λ K, ⟨(quotient_group.mk' hN).comap K, begin 
+  rw subgroup.le,
   intro g,
-  intro h,
-  change g ∈ (N : subgroup G) at h,
-  show (quotient_group.mk' N) g ∈ K,
-  rw ←ker_pr at h,
-  rw mem_ker at h,
-  rw h,
+  intro hg,
+  show (quotient_group.mk' hN) g ∈ K,
+  rw ←(ker_mk' hN) at hg,
+  rw mem_ker at hg,
+  rw hg,
   exact K.one_mem,
   end⟩,
-  left_inv := begin intro K, dsimp, cases K with K hK, apply subtype.ext.2, dsimp, ext,
-  
+  left_inv := begin
+    rintro ⟨K, HK⟩,
+    dsimp,
+    apply subtype.ext.2, dsimp,
+    rw subgroup.ext_iff,
+    -- you try from here?    
   sorry
   end,
-  right_inv := sorry
+  right_inv :=
+  begin
+    intro K,
+    dsimp, 
+    rw subgroup.ext_iff,
+    intro x,
+    split,
+    sorry, sorry
+  end
 }
 
 -- That theorem above (I know it says definition, that's because the functions are data) is a first
@@ -352,3 +383,6 @@ def correspondence : {H : subgroup G // N.to_subgroup ≤ H} ≃ (subgroup Q) :=
 
 -- The next thing to do is to check that the correspondence respects ⊓, but I haven't quite decided
 -- the best way to formalise that...
+
+theorem normal_iff_normal (hN : is_normal_subgroup N) (H : subgroup G) (hH : N ≤ H) :
+  is_normal_subgroup H ↔ is_normal_subgroup (correspondence hN ⟨H, hH⟩) := sorry

@@ -63,6 +63,26 @@ instance (K : subgroup G) : is_subgroup K.carrier :=
 
 instance has_coe : has_coe (subgroup G) (set G) := ⟨subgroup.carrier⟩
 
+theorem ext' {G : Type*} [group G] (H K : subgroup G) : H = K ↔ (H : set G) = (K : set G) :=
+begin
+  cases H;cases K,
+  unfold_coes,
+  simp,
+end
+
+@[extensionality] theorem ext_iff {G : Type*} [group G] (H K : subgroup G) :
+H = K ↔ ∀ x : G, x ∈ H ↔ x ∈ K :=
+begin
+  split,
+    intro h,
+    intro x,
+    rw h,
+  intro h,
+  rw ext',
+  apply set.ext,
+  exact h
+end 
+
 definition map (f : G →* H) (G1 : subgroup G) : subgroup H :=
 { carrier := f '' (G1 : set G),
   one_mem := begin
@@ -125,21 +145,5 @@ definition comap (f : G →* H) (H1 : subgroup H) : subgroup G :=
 
 end subgroup
 
-structure normal_subgroup' (G : Type*) [group G] extends subgroup G :=
-(h : normal_subgroup carrier)
-
-instance normal_subgroup'_is_subgroup
-  (G : Type*) [group G] (N : normal_subgroup' G) : is_subgroup N.carrier :=
-{ one_mem := N.one_mem,
-  mul_mem := N.mul_mem,
-  inv_mem := N.inv_mem }
-
-  instance normal_subgroup'_is_normal_subgroup
-    (G : Type*) [group G] (N : normal_subgroup' G) : normal_subgroup N.carrier := N.h
-
-  instance normal_subgroup'_is_normal_subgroup'
-    (G : Type*) [group G] (N : normal_subgroup' G) : normal_subgroup (N.to_subgroup : set G) := N.h
-
-
-instance foo (G : Type*) [group G] : has_coe (normal_subgroup' G) (subgroup G) :=
-⟨normal_subgroup'.to_subgroup⟩
+def is_normal_subgroup {G : Type*} [group G] (S : subgroup G) :=
+normal_subgroup S.carrier
