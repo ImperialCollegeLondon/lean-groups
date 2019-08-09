@@ -299,7 +299,14 @@ begin
    constructor,
    -- see what you can do -- might not be logically necessary but it might also be good
    -- practice :-) 
-   sorry
+   intros n hn g,
+   change n ∈ ker f at hn,
+   rw mem_ker f n at hn,
+   show g * n * g⁻¹ ∈ ker f,
+   rw [mem_ker f (g * n * g⁻¹), mul_assoc g n g⁻¹, group_hom.map_mul f g (n * g⁻¹)],
+   rw [group_hom.map_mul f n g⁻¹, hn, one_mul],
+   rw [← group_hom.map_mul],
+   simp,
 end
 
 
@@ -361,9 +368,15 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
   left_inv := begin
     rintro ⟨K, HK⟩,
     dsimp,
-    apply subtype.ext.2, dsimp,
+    apply subtype.ext.2, 
+    dsimp,
     rw subgroup.ext_iff,
-    -- you try from here?    
+    intro x,
+    split,
+      intro hx,
+      change (quotient_group.mk' hN) x ∈ (map (mk' hN)) K at hx,
+      
+      sorry, 
   sorry
   end,
   right_inv :=
