@@ -375,18 +375,36 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
     split,
       intro hx,
       change (quotient_group.mk' hN) x ∈ (map (mk' hN)) K at hx,
-      
+      -- f is (mk' hN) 
+      -- f(x) ∈ F(K) => ∃ k ∈ K st. f(x) = f(k) 
+      -- K is a subgroup => k⁻¹ exists -- subgroup.inv_mem
+      -- f(x) = f(k) => f(x)f(k⁻¹) = f(k)f(k⁻¹) => f(xk⁻¹) = f(1) = 1 show, group_hom.map_mul,
+      -- So xk⁻¹ ∈ ker f ⊆ K 
+      -- But K is closed under multiplication and xk⁻¹ * k = x, so x ∈ K.
       sorry, 
-  sorry
+  intro hx,
+  show (quotient_group.mk' hN) x ∈ (map (mk' hN)) K,
+  exact set.mem_image_of_mem (λ (a : G), ⇑(mk' hN) a) hx,
   end,
   right_inv :=
   begin
-    intro K,
-    dsimp, 
-    rw subgroup.ext_iff,
-    intro x,
-    split,
-    sorry, sorry
+  intro K,
+  dsimp, 
+  rw subgroup.ext_iff,
+  intro x,
+  split,
+    intro hx,
+    -- x is a coset?
+    -- x ∈ F(F⁻¹(K)) => f⁻¹(x) ∈ F⁻¹(K) => ∃ k ∈ K st. f⁻¹(x) = f⁻¹(k) 
+      -- K is a subgroup => k⁻¹ exists -- subgroup.inv_mem
+      -- f⁻¹(x) = f⁻¹(k) => f⁻¹(x)f⁻¹(k⁻¹) = f⁻¹(k)f⁻¹(k⁻¹) => f⁻¹(xk⁻¹) = f⁻¹(1) = 1 show, group_hom.map_mul,
+      -- So xk⁻¹ ∈ ker f⁻¹ ⊆ K 
+      -- But K is closed under multiplication and xk⁻¹ * k = x, so x ∈ K.
+    sorry, 
+  intro hx,
+  -- x ∈ K => ∃ j ∈ F⁻¹(K) st. f(j)=x (surjectivity)
+  -- 
+  sorry
   end
 }
 
@@ -398,4 +416,13 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
 -- the best way to formalise that...
 
 theorem normal_iff_normal (hN : is_normal_subgroup N) (H : subgroup G) (hH : N ≤ H) :
-  is_normal_subgroup H ↔ is_normal_subgroup (correspondence hN ⟨H, hH⟩) := sorry
+  is_normal_subgroup H ↔ is_normal_subgroup (correspondence hN ⟨H, hH⟩) := 
+begin
+split,
+  intro nsH,
+  
+  sorry,
+intro nscH,
+
+sorry
+end
