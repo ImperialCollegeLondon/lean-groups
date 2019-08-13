@@ -438,16 +438,29 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
 -- The next thing to do is to check that the correspondence respects ⊓, but I haven't quite decided
 -- the best way to formalise that...
 
+-- H (containing N) is a normal subgroup of G iff H/N is a normal subgroup of G/N
+
 theorem normal_iff_normal (hN : is_normal_subgroup N) (H : subgroup G) (hH : N ≤ H) :
   is_normal_subgroup H ↔ is_normal_subgroup (correspondence hN ⟨H, hH⟩) := 
 begin
   split,
     intro nsH,
     rw is_normal_subgroup_def at nsH ⊢,
-  
+    intros,
+    --have hHNG : quotient' (proof that N is a normal subgroup of H) ≤ quotient' hN,
+    -- hN : N is a normal subgroup of G, hsH : H is a normal subgroup of G
+    -- Then H/N is a subgroup of G/N : hHNG
+    -- So gN*hN*g⁻¹N=ghg⁻¹N ∈ H/N ~~~~~~~~
     sorry,
   intro nscH,
   rw is_normal_subgroup_def at nscH ⊢,
-  
+  intros,
+  -- Let h ∈ H, g ∈ G
+  -- H/N is normal => ghg⁻¹ ∈ H/N => ghg⁻¹N=aN for some a ∈ H
+  -- H/N is a subgroup => h⁻¹N ∈ H/N and h⁻¹ ∈ H
+  -- So gh⁻¹g⁻¹ ∈ H/N => 1 = gh⁻¹g⁻¹ * a ∈ ker(H/N) = N
+  -- N ≤ H => gh⁻¹g⁻¹ * a ∈ H
+  -- H is a subgroup so a⁻¹ exists and gh⁻¹g⁻¹ * a * a⁻¹ ∈ H => gh⁻¹g⁻¹ ∈ H
+  -- Hence H is a normal subgroup
   sorry
 end
