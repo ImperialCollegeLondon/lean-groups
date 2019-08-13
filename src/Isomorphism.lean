@@ -366,22 +366,25 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
   exact K.one_mem,
   end⟩,
   left_inv := begin
-    rintro ⟨K, HK⟩,
-    dsimp,
-    apply subtype.ext.2, 
-    dsimp,
-    rw subgroup.ext_iff,
-    intro x,
-    split,
-      intro hx,
-      change (quotient_group.mk' hN) x ∈ (map (mk' hN)) K at hx,
+  rintro ⟨K, HK⟩,
+  dsimp,
+  apply subtype.ext.2, 
+  dsimp,
+  rw subgroup.ext_iff,
+  intro x,
+  split,
+    intro hx,
+    change (quotient_group.mk' hN) x ∈ (map (mk' hN)) K at hx,
+    cases hx with k hxk,
+    cases hxk with kK hxkx,
+    
+    sorry, 
       -- f is (mk' hN) 
       -- f(x) ∈ F(K) => ∃ k ∈ K st. f(x) = f(k) 
       -- K is a subgroup => k⁻¹ exists -- subgroup.inv_mem
-      -- f(x) = f(k) => f(x)f(k⁻¹) = f(k)f(k⁻¹) => f(xk⁻¹) = f(1) = 1 show, group_hom.map_mul,
+      -- f(x) = f(k) => f(x)f(k⁻¹) = f(k)f(k⁻¹) => f(xk⁻¹) = f(1) = 1 change, group_hom.map_mul,
       -- So xk⁻¹ ∈ ker f ⊆ K 
       -- But K is closed under multiplication and xk⁻¹ * k = x, so x ∈ K.
-      sorry, 
   intro hx,
   show (quotient_group.mk' hN) x ∈ (map (mk' hN)) K,
   exact set.mem_image_of_mem (λ (a : G), ⇑(mk' hN) a) hx,
@@ -394,16 +397,15 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
   intro x,
   split,
     intro hx,
-    -- x is a coset?
-    -- x ∈ F(F⁻¹(K)) => f⁻¹(x) ∈ F⁻¹(K) => ∃ k ∈ K st. f⁻¹(x) = f⁻¹(k) 
-      -- K is a subgroup => k⁻¹ exists -- subgroup.inv_mem
-      -- f⁻¹(x) = f⁻¹(k) => f⁻¹(x)f⁻¹(k⁻¹) = f⁻¹(k)f⁻¹(k⁻¹) => f⁻¹(xk⁻¹) = f⁻¹(1) = 1 show, group_hom.map_mul,
-      -- So xk⁻¹ ∈ ker f⁻¹ ⊆ K 
-      -- But K is closed under multiplication and xk⁻¹ * k = x, so x ∈ K.
-    sorry, 
+    cases hx with k hxk,
+    cases hxk with kK hxkx,
+    change (quotient_group.mk' hN) k ∈ K at kK,
+    rw hxkx at kK,
+    assumption,
   intro hx,
+  --cases 
   -- x ∈ K => ∃ j ∈ F⁻¹(K) st. f(j)=x (surjectivity)
-  -- 
+  -- So f(j) ∈ F(F⁻¹(K)) => x ∈ F(F⁻¹(K))
   sorry
   end
 }
