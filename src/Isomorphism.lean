@@ -441,11 +441,13 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
 theorem normal_iff_normal (hN : is_normal_subgroup N) (H : subgroup G) (hH : N ≤ H) :
   is_normal_subgroup H ↔ is_normal_subgroup (correspondence hN ⟨H, hH⟩) := 
 begin
-split,
-  intro nsH,
+  split,
+    intro nsH,
+    rw is_normal_subgroup_def at nsH ⊢,
   
-  sorry,
-intro nscH,
-
-sorry
+    sorry,
+  intro nscH,
+  rw is_normal_subgroup_def at nscH ⊢,
+  
+  sorry
 end

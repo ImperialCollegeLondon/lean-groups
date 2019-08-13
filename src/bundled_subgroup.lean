@@ -147,3 +147,15 @@ end subgroup
 
 def is_normal_subgroup {G : Type*} [group G] (S : subgroup G) :=
 normal_subgroup S.carrier
+
+theorem is_normal_subgroup_def {G : Type*} [group G] (S : subgroup G) :
+  is_normal_subgroup S ↔ (∀ n : G, n ∈ S → ∀ g : G, g * n * g⁻¹ ∈ S) :=
+begin
+  split,
+    intro h,
+    cases h,
+    exact h_normal,
+  intro h,
+  constructor,
+  exact h
+end
