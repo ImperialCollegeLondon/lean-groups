@@ -377,11 +377,25 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
     change (quotient_group.mk' hN) x ∈ (map (mk' hN)) K at hx,
     cases hx with k hxk,
     cases hxk with kK hxkx,
-    
-    sorry, 
+    let f := (mk' hN),
+    have hxkone : f (x*k⁻¹) = 1,
+      calc f(x*k⁻¹) = f(x)*f(k⁻¹) : by apply f.map_mul 
+      ...           = f(k)*f(k⁻¹) : by rw hxkx
+      ...           = f(k*k⁻¹) : by rw f.map_mul
+      ...           = f(1) : by rw mul_inv_self
+      ...           = 1 : f.map_one,
+    rw ←mem_ker at hxkone,
+    rw ker_mk' at hxkone,
+    have hfh : x*k⁻¹ ∈ K,
+      apply HK,
+      assumption,
+    convert K.mul_mem hfh kK,
+    rw mul_assoc,
+    rw inv_mul_self k,
+    rw mul_one,
       -- f is (mk' hN) 
       -- f(x) ∈ F(K) => ∃ k ∈ K st. f(x) = f(k) 
-      -- K is a subgroup => k⁻¹ exists -- subgroup.inv_mem
+      -- K is a subgroup => k⁻¹ exists ∈ K -- K.inv_mem kK
       -- f(x) = f(k) => f(x)f(k⁻¹) = f(k)f(k⁻¹) => f(xk⁻¹) = f(1) = 1 change, group_hom.map_mul,
       -- So xk⁻¹ ∈ ker f ⊆ K 
       -- But K is closed under multiplication and xk⁻¹ * k = x, so x ∈ K.
@@ -403,10 +417,17 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
     rw hxkx at kK,
     assumption,
   intro hx,
+  have hxk := mk'.surjective hN x,
+  cases hxk with g hxkx,
+  use g,
+  split,
+    show (quotient_group.mk' hN) g ∈ K,
+    rwa hxkx,
+  assumption,
   --cases 
   -- x ∈ K => ∃ j ∈ F⁻¹(K) st. f(j)=x (surjectivity)
   -- So f(j) ∈ F(F⁻¹(K)) => x ∈ F(F⁻¹(K))
-  sorry
+  
   end
 }
 
