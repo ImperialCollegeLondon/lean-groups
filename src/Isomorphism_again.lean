@@ -438,14 +438,6 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
 -- The next thing to do is to check that the correspondence respects ⊓, but I haven't quite decided
 -- the best way to formalise that...
 
-theorem normal_is_subgroup {G : Type*} [group G] {N : subgroup G} {H : subgroup G} (h : is_normal_subgroup N) (hH : N ≤ H) : 
-∀ n : G, n ∈ N → ∀ h : G, h ∈ H → h * n * h⁻¹ ∈ N :=
-begin
-intros g gn H hH,
-rw is_normal_subgroup_def at h,
-sorry
-end
-
 -- H (containing N) is a normal subgroup of G iff H/N is a normal subgroup of G/N
 
 theorem normal_iff_normal (hN : is_normal_subgroup N) (H : subgroup G) (hH : N ≤ H) :
@@ -455,29 +447,23 @@ begin
     intro nsH,
     rw is_normal_subgroup_def at nsH ⊢,
     intros,
-    have NnormH : ∀ n : G, n ∈ N → ∀ h : G, h ∈ H → h * n * h⁻¹ ∈ N,
-      exact normal_is_subgroup hN hH,
-    --have hHNG : quotient' NnormH ≤ quotient' hN, error : failed to synthesize type class instance for
     
-    
+    --have hHNG : quotient' (proof that N is a normal subgroup of H) ≤ quotient' hN,
     -- hN : N is a normal subgroup of G, hsH : H is a normal subgroup of G
     -- Then H/N is a subgroup of G/N : hHNG
-    -- So gN*hN*g⁻¹N=ghg⁻¹N : by the group rule for quoitients
-    -- ghg⁻¹N ∈ H/N : nsH
-    -- note H/N = ⇑(correspondence hN) ⟨H, hH⟩
+    -- So gN*hN*g⁻¹N=ghg⁻¹N ∈ H/N ~~~~~~~~
     sorry,
   intro nscH,
   rw is_normal_subgroup_def at nscH ⊢,
   intros,
-  
+--choose nq gq using nscH,
   -- HAVE n ∈ H, g ∈ G
-  -- H/N is normal => ghg⁻¹N ∈ H/N (nscH)
-  -- => ghg⁻¹N=aN for some a ∈ H (Tried "let b : b = g * n * g⁻¹," - not working)
+  -- H/N is normal => ghg⁻¹N ∈ H/N (nscH) => ghg⁻¹N=aN for some a ∈ H
   -- H/N is a subgroup => h⁻¹N ∈ H/N and h⁻¹ ∈ H
-        -- let min_n : ∀ (h : quotient' hN), h⁻¹ ∈ (correspondence hN) ⟨H, hH⟩,
-        --  intro,
-        --  apply subgroup.inv_mem,
-       --This needs the proof that there is an element in ⇑(correspondence hN).carrier 
+                 --let min_n : ∀ (h : quotient' hN), h⁻¹ ∈ (correspondence hN) ⟨H, hH⟩,
+                 -- intro,
+                 -- apply subgroup.inv_mem,
+    
     
   -- So gh⁻¹g⁻¹ ∈ H/N => 1 = gh⁻¹g⁻¹ * a ∈ ker(H/N) = N
   -- N ≤ H => gh⁻¹g⁻¹ * a ∈ H
@@ -485,6 +471,4 @@ begin
   -- Hence H is a normal subgroup
   sorry
 end
-
-
---int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
+#print prefix quotient
