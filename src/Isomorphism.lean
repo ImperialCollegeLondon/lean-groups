@@ -178,6 +178,15 @@ instance : semilattice_inf (subgroup G) :=
   end,
   ..subgroup.partial_order}
 
+def top : subgroup G :=
+{ carrier := set.univ,
+  one_mem := set.mem_univ _,
+  mul_mem := λ _ _ _ _, set.mem_univ _,
+  inv_mem := λ _ _, set.mem_univ _
+}
+
+instance : has_top (subgroup G) := ⟨top⟩
+
 -- Lean has quotients by normal subgroups.
 
 -- old style method
@@ -506,5 +515,22 @@ begin
   -- Hence H is a normal subgroup
 end
 
+theorem correspondence.le_iff (hN : is_normal_subgroup N) (H₁ H₂ : subgroup G)
+(h1 : N ≤ H₁) (h2 : N ≤ H₂) : correspondence hN ⟨H₁, h1⟩ ⊓ correspondence hN ⟨H₂, h2⟩ = 
+  correspondence hN ⟨H₁ ⊓ H₂, lattice.le_inf h1 h2⟩
+:=
+begin
+  sorry
+end
 
+theorem correspondence.inf_iff (hN : is_normal_subgroup N) (H₁ H₂ : subgroup G)
+(h1 : N ≤ H₁) (h2 : N ≤ H₂) : correspondence hN ⟨H₁, h1⟩ ≤ correspondence hN ⟨H₂, h2⟩ :=
+begin
+  sorry
+end
+
+theorem correspondence.top (hN : is_normal_subgroup N) : correspondence hN ⟨⊤, λ _ _, set.mem_univ _⟩ = ⊤ :=
+begin
+  sorry
+end  
 --int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
