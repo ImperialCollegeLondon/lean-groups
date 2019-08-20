@@ -8,6 +8,8 @@ def mk {G H} [group G] [group H] (f : G → H) [is_group_hom f] : G →* H :=
   map_one' := is_group_hom.map_one f,
   map_mul' := (is_group_hom.to_is_mul_hom f).map_mul }
 
+def map_inv  [group G] [group H] (f : G →* H) (x : G) : f (x⁻¹) = (f x)⁻¹ :=
+is_group_hom.map_inv _ x
 
 end group_hom
 

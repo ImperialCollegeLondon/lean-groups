@@ -351,6 +351,28 @@ open quotient_group
 -- hey this Wikipedia page is great:
 -- https://en.wikipedia.org/wiki/Correspondence_theorem_(group_theory)
 
+lemma mem_of_map_mem {K : subgroup G} (HK : N ≤ K) (x : G) (hx : ⇑(mk' hN) x ∈ (quotient_group.mk' hN).map K) : x ∈ K :=
+begin
+cases hx with k hxk,
+    cases hxk with kK hxkx,
+    let f := (mk' hN),
+    have hxkone : f (x*k⁻¹) = 1,
+      calc f(x*k⁻¹) = f(x)*f(k⁻¹) : by apply f.map_mul 
+      ...           = f(k)*f(k⁻¹) : by rw hxkx
+      ...           = f(k*k⁻¹) : by rw f.map_mul
+      ...           = f(1) : by rw mul_inv_self
+      ...           = 1 : f.map_one,
+    rw ←mem_ker at hxkone,
+    rw ker_mk' at hxkone,
+    have hfh : x*k⁻¹ ∈ K,
+      apply HK,
+      assumption,
+    convert K.mul_mem hfh kK,
+    rw mul_assoc,
+    rw inv_mul_self k,
+    rw mul_one,
+end
+
 /-- Correspondence theorem for group theory -- first version -/
 
 def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
@@ -375,24 +397,9 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
   split,
     intro hx,
     change (quotient_group.mk' hN) x ∈ (map (mk' hN)) K at hx,
-    cases hx with k hxk,
-    cases hxk with kK hxkx,
-    let f := (mk' hN),
-    have hxkone : f (x*k⁻¹) = 1,
-      calc f(x*k⁻¹) = f(x)*f(k⁻¹) : by apply f.map_mul 
-      ...           = f(k)*f(k⁻¹) : by rw hxkx
-      ...           = f(k*k⁻¹) : by rw f.map_mul
-      ...           = f(1) : by rw mul_inv_self
-      ...           = 1 : f.map_one,
-    rw ←mem_ker at hxkone,
-    rw ker_mk' at hxkone,
-    have hfh : x*k⁻¹ ∈ K,
-      apply HK,
+    apply mem_of_map_mem hN,
       assumption,
-    convert K.mul_mem hfh kK,
-    rw mul_assoc,
-    rw inv_mul_self k,
-    rw mul_one,
+    assumption,
       -- f is (mk' hN) 
       -- f(x) ∈ F(K) => ∃ k ∈ K st. f(x) = f(k) 
       -- K is a subgroup => k⁻¹ exists ∈ K -- K.inv_mem kK
@@ -438,14 +445,6 @@ def correspondence : {H : subgroup G // N ≤ H} ≃ (subgroup Q) :=
 -- The next thing to do is to check that the correspondence respects ⊓, but I haven't quite decided
 -- the best way to formalise that...
 
-theorem normal_is_subgroup {G : Type*} [group G] {N : subgroup G} {H : subgroup G} (h : is_normal_subgroup N) (hH : N ≤ H) : 
-∀ n : G, n ∈ N → ∀ h : G, h ∈ H → h * n * h⁻¹ ∈ N :=
-begin
-intros g gn H hH,
-rw is_normal_subgroup_def at h,
-sorry
-end
-
 -- H (containing N) is a normal subgroup of G iff H/N is a normal subgroup of G/N
 
 theorem normal_iff_normal (hN : is_normal_subgroup N) (H : subgroup G) (hH : N ≤ H) :
@@ -455,21 +454,43 @@ begin
     intro nsH,
     rw is_normal_subgroup_def at nsH ⊢,
     intros,
-    have NnormH : ∀ n : G, n ∈ N → ∀ h : G, h ∈ H → h * n * h⁻¹ ∈ N,
-      exact normal_is_subgroup hN hH,
+    --have NnormH : ∀ n : G, n ∈ N → ∀ h : G, h ∈ H → h * n * h⁻¹ ∈ N,
+    --  exact normal_is_subgroup hN hH,
     --have hHNG : quotient' NnormH ≤ quotient' hN, error : failed to synthesize type class instance for
-    
-    
+    have j := mk'.surjective hN g,
+    cases j with t ht,
+    have k := mk'.surjective hN n,
+    cases k with l hl,
+    have linH : l ∈ H,
+      apply mem_of_map_mem hN hH, 
+      rw hl,
+      apply a,
+    have : t * l * t⁻¹ ∈ H,
+    apply nsH,
+      assumption,
+    rw [←ht, ←hl],
+    rw [←group_hom.map_mul, ←group_hom.map_inv, ←group_hom.map_mul],
+    use t * l * t⁻¹,
+    split,
+      assumption,
+    refl,
     -- hN : N is a normal subgroup of G, hsH : H is a normal subgroup of G
     -- Then H/N is a subgroup of G/N : hHNG
     -- So gN*hN*g⁻¹N=ghg⁻¹N : by the group rule for quoitients
     -- ghg⁻¹N ∈ H/N : nsH
     -- note H/N = ⇑(correspondence hN) ⟨H, hH⟩
-    sorry,
   intro nscH,
   rw is_normal_subgroup_def at nscH ⊢,
   intros,
-  
+  have that : ⇑(mk' hN) n ∈ (correspondence hN) ⟨H, hH⟩,
+    use n,
+    split,
+      assumption,
+    refl,
+  have := nscH (mk' hN n) that (mk' hN g),
+  rw [←group_hom.map_mul, ←group_hom.map_inv, ←group_hom.map_mul] at this,
+  apply mem_of_map_mem hN hH,
+  assumption,
   -- HAVE n ∈ H, g ∈ G
   -- H/N is normal => ghg⁻¹N ∈ H/N (nscH)
   -- => ghg⁻¹N=aN for some a ∈ H (Tried "let b : b = g * n * g⁻¹," - not working)
@@ -483,7 +504,6 @@ begin
   -- N ≤ H => gh⁻¹g⁻¹ * a ∈ H
   -- H is a subgroup so a⁻¹ exists and gh⁻¹g⁻¹ * a * a⁻¹ ∈ H => gh⁻¹g⁻¹ ∈ H
   -- Hence H is a normal subgroup
-  sorry
 end
 
 
