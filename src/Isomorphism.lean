@@ -325,7 +325,9 @@ begin
   letI : normal_subgroup N.carrier := h,
   apply subgroup.ext,
   convert quotient_group.ker_mk N.carrier,
-  sorry -- I'll fix this later  
+  ext,
+  rw [monoid_hom.ker, is_group_hom.mem_ker],
+  refl,
 end
 
 
