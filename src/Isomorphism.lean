@@ -178,6 +178,8 @@ instance : semilattice_inf (subgroup G) :=
   end,
   ..subgroup.partial_order}
 
+ 
+
 def top : subgroup G :=
 { carrier := set.univ,
   one_mem := set.mem_univ _,
@@ -502,37 +504,134 @@ begin
   rw [←group_hom.map_mul, ←group_hom.map_inv, ←group_hom.map_mul] at this,
   apply mem_of_map_mem hN hH,
   assumption,
-  -- HAVE n ∈ H, g ∈ G
-  -- H/N is normal => ghg⁻¹N ∈ H/N (nscH)
-  -- => ghg⁻¹N=aN for some a ∈ H (Tried "let b : b = g * n * g⁻¹," - not working)
-  -- H/N is a subgroup => h⁻¹N ∈ H/N and h⁻¹ ∈ H
-        -- let min_n : ∀ (h : quotient' hN), h⁻¹ ∈ (correspondence hN) ⟨H, hH⟩,
-        --  intro,
-        --  apply subgroup.inv_mem,
-       --This needs the proof that there is an element in ⇑(correspondence hN).carrier 
-    
-  -- So gh⁻¹g⁻¹ ∈ H/N => 1 = gh⁻¹g⁻¹ * a ∈ ker(H/N) = N
-  -- N ≤ H => gh⁻¹g⁻¹ * a ∈ H
-  -- H is a subgroup so a⁻¹ exists and gh⁻¹g⁻¹ * a * a⁻¹ ∈ H => gh⁻¹g⁻¹ ∈ H
-  -- Hence H is a normal subgroup
+end
+
+
+
+lemma mem_mem_inf (H₁ H₂ : subgroup G) (t : G): t ∈ H₁ ⊓ H₂ → t ∈ H₁ :=
+begin
+  intro tH,
+  change t ∈ H₁.carrier,
+  cases tH,
+  assumption,
+end
+
+lemma mem_inf_mem (H₁ H₂ : subgroup G) (t : G): t ∈ H₁ ⊓ H₂ → t ∈ H₂ :=
+begin
+  intro tH,
+  change t ∈ H₂.carrier,
+  cases tH,
+  assumption,
+end
+ 
+lemma le_top (H : subgroup G) : H ≤ ⊤ := 
+begin
+  rw subgroup.le,
+  intros x xh,
+  unfold lattice.has_top.top,
 end
 
 theorem correspondence.le_iff (hN : is_normal_subgroup N) (H₁ H₂ : subgroup G)
 (h1 : N ≤ H₁) (h2 : N ≤ H₂) : correspondence hN ⟨H₁, h1⟩ ⊓ correspondence hN ⟨H₂, h2⟩ = 
-  correspondence hN ⟨H₁ ⊓ H₂, lattice.le_inf h1 h2⟩
-:=
+  correspondence hN ⟨H₁ ⊓ H₂, lattice.le_inf h1 h2⟩ :=
 begin
-  sorry
+  rw subgroup.ext_iff,
+  intros,
+  have j := mk'.surjective hN x,
+  cases j with t ht,
+  rw ←ht,
+  have : N ≤ H₁ ⊓ H₂,
+    change N.carrier ⊆ H₁.carrier ∩ H₂.carrier,
+    simp,
+    split,
+      assumption,
+    assumption,
+  split,
+    intro xh,
+    cases xh with xh1 xh2,
+    use t,
+    split,
+      apply mem_of_map_mem hN this,
+      use t,
+      split,
+        split,
+          apply mem_of_map_mem hN h1,
+          assumption,
+        apply mem_of_map_mem hN h2,
+        assumption,
+      refl,
+    refl,
+  intro xh,
+  have htt : t ∈ H₁ ⊓ H₂,
+    apply mem_of_map_mem hN this,
+    apply xh,
+  split,
+    have htt1 : t ∈ H₁,
+      apply mem_mem_inf H₁ H₂,
+      assumption,  
+    use t,
+    split,
+      assumption,
+    refl,
+  have htt1 : t ∈ H₂,
+      apply mem_inf_mem H₁ H₂,
+      assumption,  
+    use t,
+    split,
+      assumption,
+    refl,
 end
 
 theorem correspondence.inf_iff (hN : is_normal_subgroup N) (H₁ H₂ : subgroup G)
-(h1 : N ≤ H₁) (h2 : N ≤ H₂) : correspondence hN ⟨H₁, h1⟩ ≤ correspondence hN ⟨H₂, h2⟩ :=
+(h1 : N ≤ H₁) (h2 : N ≤ H₂) : correspondence hN ⟨H₁, h1⟩ ≤ correspondence hN ⟨H₂, h2⟩ ↔ H₁ ≤ H₂ :=
 begin
-  sorry
+  split,
+    intro hh,
+    rw subgroup.le at hh ⊢,
+    intros x xh,
+    have that : ⇑(mk' hN) x ∈ (correspondence hN) ⟨H₁, h1⟩,
+      use x,
+      split,
+        assumption,
+      refl,
+    have := hh (mk' hN x) that,
+    apply mem_of_map_mem hN h2,
+    assumption,
+  intro hh,
+  rw subgroup.le at hh ⊢,
+  intros x xh,
+  have j := mk'.surjective hN x,
+  cases j with t ht,
+  rw ←ht at xh,
+  have xhh : t ∈ H₁,
+    apply mem_of_map_mem hN h1,
+    assumption,
+  have := hh t xhh,
+  rw ←ht,
+  use t,
+  split,
+    assumption,
+  refl,
 end
 
 theorem correspondence.top (hN : is_normal_subgroup N) : correspondence hN ⟨⊤, λ _ _, set.mem_univ _⟩ = ⊤ :=
 begin
-  sorry
+  rw subgroup.ext_iff,
+  intro,
+  have hT : N ≤ ⊤,
+    apply le_top,
+  have j := mk'.surjective hN x,
+  cases j with t ht,
+  rw ← ht,
+  split,
+    intro hx,
+    apply mem_of_map_mem hN hT t,
+    apply hx,
+  intro hx,
+  use t,
+  split,
+    assumption,
+  refl,
 end  
 --int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
+
