@@ -253,11 +253,15 @@ def Inf (X : set (subgroup G)) : subgroup G :=
   end,
   inv_mem := sorry }
 
-instance : has_Inf (subgroup G) := ⟨Inf⟩
+instance subgroup.has_Inf : has_Inf (subgroup G) := ⟨Inf⟩
 
 def sup (H K : subgroup G) : subgroup G := Inf {X | H ≤ X ∧ K ≤ X}
 
 instance : has_sup (subgroup G) := ⟨sup⟩
+
+def Sup (X : set (subgroup G)) : subgroup G := Inf {K | ∀ H : X, H.val ≤ K}
+
+instance subgroup.has_Sup : has_Sup (subgroup G) := ⟨Sup⟩
 
 instance subgroup.semilattice_sup : semilattice_sup (subgroup G) := 
 { sup := sup,
@@ -283,13 +287,26 @@ end
 
 instance subgroup.order_bot : order_bot (subgroup G) := {bot_le := bot_le, ..subgroup.partial_order, ..subgroup.has_bot}
 
-instance : bounded_lattice (subgroup G) := {..subgroup.lattice, ..subgroup.order_top, ..subgroup.order_bot}
+instance subgroup.bounded_lattice : bounded_lattice (subgroup G) := {..subgroup.lattice, ..subgroup.order_top, ..subgroup.order_bot}
 
 instance subtype.has_Inf : has_Inf ({H : subgroup G // N ≤ H}) := ⟨
   λ X, ⟨Inf (set.image subtype.val X), sorry⟩
 ⟩
 
+instance : complete_lattice (subgroup G) :=
+{ le_Sup := sorry,
+  Sup_le := sorry,
+  Inf_le := sorry,
+  le_Inf := sorry,
+  ..subgroup.bounded_lattice, ..subgroup.has_Sup, ..subgroup.has_Inf}
 
+/-
+class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has_Inf α :=
+(le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
+(Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
+(Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
+(le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
+-/
 
 end subgroup
 
@@ -691,7 +708,7 @@ begin
   rw subgroup.ext_iff,
   intro,
   have hT : N ≤ ⊤,
-    apply le_top,
+    apply subgroup.le_top,
   have j := mk'.surjective hN x,
   cases j with t ht,
   rw ← ht,
