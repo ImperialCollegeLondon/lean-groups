@@ -60,7 +60,8 @@ namespace subgroup
 variables {G : Type*} [group G]
 
 -- Two subgroups with same underlying subset are the same subgroup. 
-@[extensionality] def ext (H K : subgroup G) (h : (H : set G) = K) : H = K := by cases H; cases K; cases h; refl 
+@[extensionality] def ext (H K : subgroup G) (h : (H : set G) = K) : H = K :=
+by cases H; cases K; cases h; refl 
 
 -- Do you know what a partial order is? You can look it up on Wikipedia.
 -- It's not hard to check that the set of subsets of a set is a partial order.
@@ -143,14 +144,15 @@ protected def inf (H K : subgroup G) : subgroup G :=
   }
 
 -- notation for inf is ⊓ (\glb) and as you can see from the definition of "carrier" above (the carrier
--- is the underlying set), it's just the intersection. `inf` stands for "infimum" and "glb" for "greatest lower bound",
+-- is the underlying set), it's just the intersection. `inf` stands for "infimum" and
+-- "glb" for "greatest lower bound",
 -- both rather pretentious names for the intersection.
 
 instance : has_inf (subgroup G) := ⟨subgroup.inf⟩
 
 -- half way to a lattice is a semilattice_inf: there are some axioms you need to check though.
 
-instance : semilattice_inf (subgroup G) :=
+instance subgroup.semilattice_inf : semilattice_inf (subgroup G) :=
 { inf := (⊓),
   inf_le_left := begin
   intros,
@@ -187,7 +189,27 @@ def top : subgroup G :=
   inv_mem := λ _ _, set.mem_univ _
 }
 
-instance : has_top (subgroup G) := ⟨top⟩
+instance subgroup.has_top : has_top (subgroup G) := ⟨top⟩
+
+def bot : subgroup G :=
+{ carrier := {1},
+  one_mem := begin 
+    apply set.mem_singleton
+  end,
+  mul_mem := begin
+    intros a b ha hb,
+    rw set.mem_singleton_iff at ha hb ⊢,
+    rw [ha, hb, mul_one],
+  end,
+  inv_mem := begin
+    intros a ha,
+    rw set.mem_singleton_iff at ha ⊢,
+    rw ha,
+    simp,
+  end
+}
+
+instance subgroup.has_bot : has_bot (subgroup G) := ⟨bot⟩
 
 -- Lean has quotients by normal subgroups.
 
@@ -195,7 +217,8 @@ instance : has_top (subgroup G) := ⟨top⟩
 example (G : Type*) [group G] (N : set G) [normal_subgroup N] := quotient_group.quotient N 
 -- This is G/N. Lean guesses G from N.
 
--- We want to make a term of type `equiv X Y` where X and Y are two collections of subgroups and the `equiv` is this
+-- We want to make a term of type `equiv X Y` where X and Y are two collections of
+--  subgroups and the `equiv` is this
 -- strong kind of bijection -- a map from X to Y, and a map from Y to X, and two proofs,
 -- namely that the composite maps X->Y->X and Y->X->Y are the relevant identity maps.
 
@@ -213,10 +236,60 @@ example := subgroup Q
 
 -- That's the subgroups of G/N. The other set is the subgroups of G which contain N.
 
-example := {H : subgroup G // N ≤ H}
+instance subtype.has_bot : has_bot {H : subgroup G // N ≤ H} :=
+⟨⟨N, le_refl N⟩⟩
 
--- Those two sets biject with each other in the stong way which I showed you today: you can construct maps
--- in both directions. Do you know how do to this in maths?
+def Inf (X : set (subgroup G)) : subgroup G :=
+{ carrier := Inf (set.image subgroup.carrier X),
+  one_mem := sorry,
+  mul_mem := begin
+    intros a b ha hb,
+    -- unfolding to find out what goal meant now all deleted
+    intros H hH,
+    replace ha := ha H hH,
+    replace hb := hb H hH,
+    rcases hH with ⟨J, hJ, rfl⟩,
+    exact J.mul_mem ha hb
+  end,
+  inv_mem := sorry }
+
+instance : has_Inf (subgroup G) := ⟨Inf⟩
+
+def sup (H K : subgroup G) : subgroup G := Inf {X | H ≤ X ∧ K ≤ X}
+
+instance : has_sup (subgroup G) := ⟨sup⟩
+
+instance subgroup.semilattice_sup : semilattice_sup (subgroup G) := 
+{ sup := sup,
+  le_sup_left := sorry,
+  le_sup_right := sorry,
+  sup_le := sorry, ..subgroup.partial_order}
+
+instance subgroup.lattice : lattice (subgroup G) := { ..subgroup.semilattice_sup, ..subgroup.semilattice_inf}
+
+lemma le_top (H : subgroup G) : H ≤ ⊤ := 
+begin
+  rw subgroup.le,
+  intros x xh,
+  unfold lattice.has_top.top,
+end
+
+instance subgroup.order_top : order_top (subgroup G) := {le_top := le_top, ..subgroup.partial_order, ..subgroup.has_top, }
+
+lemma bot_le (H : subgroup G) : ⊥ ≤ H :=
+begin
+  sorry
+end
+
+instance subgroup.order_bot : order_bot (subgroup G) := {bot_le := bot_le, ..subgroup.partial_order, ..subgroup.has_bot}
+
+instance : bounded_lattice (subgroup G) := {..subgroup.lattice, ..subgroup.order_top, ..subgroup.order_bot}
+
+instance subtype.has_Inf : has_Inf ({H : subgroup G // N ≤ H}) := ⟨
+  λ X, ⟨Inf (set.image subtype.val X), sorry⟩
+⟩
+
+
 
 end subgroup
 
@@ -364,7 +437,8 @@ open quotient_group
 -- hey this Wikipedia page is great:
 -- https://en.wikipedia.org/wiki/Correspondence_theorem_(group_theory)
 
-lemma mem_of_map_mem {K : subgroup G} (HK : N ≤ K) (x : G) (hx : ⇑(mk' hN) x ∈ (quotient_group.mk' hN).map K) : x ∈ K :=
+lemma mem_of_map_mem {K : subgroup G} (HK : N ≤ K) (x : G)
+  (hx : ⇑(mk' hN) x ∈ (quotient_group.mk' hN).map K) : x ∈ K :=
 begin
 cases hx with k hxk,
     cases hxk with kK hxkx,
@@ -524,12 +598,9 @@ begin
   assumption,
 end
  
-lemma le_top (H : subgroup G) : H ≤ ⊤ := 
-begin
-  rw subgroup.le,
-  intros x xh,
-  unfold lattice.has_top.top,
-end
+
+
+
 
 theorem correspondence.le_iff (hN : is_normal_subgroup N) (H₁ H₂ : subgroup G)
 (h1 : N ≤ H₁) (h2 : N ≤ H₂) : correspondence hN ⟨H₁, h1⟩ ⊓ correspondence hN ⟨H₂, h2⟩ = 
@@ -614,7 +685,8 @@ begin
   refl,
 end
 
-theorem correspondence.top (hN : is_normal_subgroup N) : correspondence hN ⟨⊤, λ _ _, set.mem_univ _⟩ = ⊤ :=
+theorem correspondence.top (hN : is_normal_subgroup N) :
+  correspondence hN ⟨⊤, λ _ _, set.mem_univ _⟩ = ⊤ :=
 begin
   rw subgroup.ext_iff,
   intro,
