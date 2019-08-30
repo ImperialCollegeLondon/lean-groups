@@ -16,6 +16,7 @@ import data.equiv.basic
 import bundled_group_homs
 import group_theory.quotient_group
 import data.set.basic 
+import slice_lattice
 
 /- e.g.
 
@@ -241,7 +242,15 @@ instance subtype.has_bot : has_bot {H : subgroup G // N ≤ H} :=
 
 def Inf (X : set (subgroup G)) : subgroup G :=
 { carrier := Inf (set.image subgroup.carrier X),
-  one_mem := sorry,
+  one_mem := begin
+  unfold Inf,
+  unfold has_Inf.Inf,
+  unfold complete_lattice.Inf,
+  intro t,
+  intro ht,
+  rcases ht with ⟨J, hJ, rfl⟩,
+  exact J.one_mem,
+  end,
   mul_mem := begin
     intros a b ha hb,
     -- unfolding to find out what goal meant now all deleted
@@ -251,7 +260,12 @@ def Inf (X : set (subgroup G)) : subgroup G :=
     rcases hH with ⟨J, hJ, rfl⟩,
     exact J.mul_mem ha hb
   end,
-  inv_mem := sorry }
+  inv_mem := begin 
+  intros a ha H hH,
+  replace ha := ha H hH,
+  rcases hH with ⟨J, hJ, rfl⟩,
+  exact J.inv_mem ha,
+  end }
 
 instance subgroup.has_Inf : has_Inf (subgroup G) := ⟨Inf⟩
 
@@ -265,15 +279,48 @@ instance subgroup.has_Sup : has_Sup (subgroup G) := ⟨Sup⟩
 
 instance subgroup.semilattice_sup : semilattice_sup (subgroup G) := 
 { sup := sup,
-  le_sup_left := sorry,
-  le_sup_right := sorry,
-  sup_le := sorry, ..subgroup.partial_order}
+  le_sup_left := begin
+  intros a b,
+  rw le,
+  intros x hx xX xXh,
+  rcases xXh with ⟨J, hJ, rfl⟩,
+  cases hJ with aJ bJ,
+  change a.carrier ⊆ J.carrier at aJ,
+  change x ∈ a.carrier at hx,
+  apply aJ,
+  assumption,
+  end,
+  le_sup_right := begin 
+  intros,
+  rw le,
+  intros x hx xX xXh,
+  rcases xXh with ⟨J, hJ, rfl⟩,
+  cases hJ with aJ bJ,
+  change b.carrier ⊆ J.carrier at bJ,
+  change x ∈ b.carrier at hx,
+  apply bJ,
+  assumption,
+  end,
+  sup_le := begin 
+  intros a b c,
+  rw le,
+  intro hac,
+  rw le,
+  intro hbc,
+  rw le,
+  unfold lattice.has_sup.sup,
+  unfold sup,
+  intros x aorb,
+  
+  sorry 
+  end,
+   ..subgroup.partial_order}
 
 instance subgroup.lattice : lattice (subgroup G) := { ..subgroup.semilattice_sup, ..subgroup.semilattice_inf}
 
 lemma le_top (H : subgroup G) : H ≤ ⊤ := 
 begin
-  rw subgroup.le,
+  rw le,
   intros x xh,
   unfold lattice.has_top.top,
 end
@@ -282,6 +329,11 @@ instance subgroup.order_top : order_top (subgroup G) := {le_top := le_top, ..sub
 
 lemma bot_le (H : subgroup G) : ⊥ ≤ H :=
 begin
+  rw le,
+  intros x xbot,
+  unfold lattice.has_bot.bot at xbot,
+  
+
   sorry
 end
 
@@ -290,14 +342,41 @@ instance subgroup.order_bot : order_bot (subgroup G) := {bot_le := bot_le, ..sub
 instance subgroup.bounded_lattice : bounded_lattice (subgroup G) := {..subgroup.lattice, ..subgroup.order_top, ..subgroup.order_bot}
 
 instance subtype.has_Inf : has_Inf ({H : subgroup G // N ≤ H}) := ⟨
-  λ X, ⟨Inf (set.image subtype.val X), sorry⟩
+  λ X, ⟨Inf (set.image subtype.val X), begin sorry end ⟩
 ⟩
 
 instance : complete_lattice (subgroup G) :=
-{ le_Sup := sorry,
-  Sup_le := sorry,
-  Inf_le := sorry,
-  le_Inf := sorry,
+{ le_Sup := begin
+intros s a has,
+rw le,
+intros x hxa,
+unfold has_Sup.Sup,
+unfold Sup,
+intros t ht,
+rcases ht with ⟨J, hJ, rfl⟩,
+
+sorry
+end,
+  Sup_le := begin
+  intros s a b,
+  unfold has_Sup.Sup,
+  unfold Sup,
+  intros j hJ,
+  
+  sorry
+  end,
+  Inf_le := begin 
+  intros,
+  unfold has_Inf.Inf,
+  
+  sorry
+  end,
+  le_Inf := begin 
+  intros s a ha,
+  unfold has_Inf.Inf,
+
+  sorry
+  end,
   ..subgroup.bounded_lattice, ..subgroup.has_Sup, ..subgroup.has_Inf}
 
 /-
